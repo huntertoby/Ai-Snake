@@ -8,14 +8,16 @@ import torch.optim as optim
 from collections import deque
 import torch.nn.functional as F
 
+print("開始執行")
+
 # 超參數
 learning_rate = 0.001
 gamma = 0.99
 epsilon = 0.01
 min_epsilon = 0.01
 epsilon_decay = 0.995
-batch_size = 1024
-memory_size = 100000
+batch_size = 256
+memory_size = 10000
 target_update_freq = 50
 num_episodes = 2000
 grid_size = 10
@@ -54,7 +56,7 @@ class DQN(nn.Module):
 # 初始化神經網絡與優化器
 input_dim = 9  # 狀態特徵的維度
 output_dim = 4  # 動作的數量 (上、下、左、右)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 policy_net = DQN(input_dim, output_dim).to(device)
 target_net = DQN(input_dim, output_dim).to(device)
