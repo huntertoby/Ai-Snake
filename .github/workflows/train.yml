@@ -23,7 +23,7 @@ jobs:
           pip install pygame torch
 
       - name: Run training script
-        run: python main.py
+        run: python Main.py
 
       - name: Update README
         run: |
