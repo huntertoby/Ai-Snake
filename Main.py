@@ -8,18 +8,16 @@ import torch.optim as optim
 from collections import deque
 import torch.nn.functional as F
 
-print("Work Start。")
-
 # 超參數
 learning_rate = 0.001
 gamma = 0.99
-epsilon = 1
+epsilon = 0.01
 min_epsilon = 0.01
-epsilon_decay = 0.999
+epsilon_decay = 0.995
 batch_size = 1024
 memory_size = 100000
 target_update_freq = 50
-num_episodes = 5000
+num_episodes = 2000
 grid_size = 10
 cell_size = 1
 
@@ -168,14 +166,19 @@ def update_network():
 def get_distance(snake_head, food_pos):
     return abs(snake_head[0] - food_pos[0]) + abs(snake_head[1] - food_pos[1])
 
+def generate_food(snake_body):
+    while True:
+        food = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
+        if food not in snake_body:
+            return food
+
 
 # 模擬遊戲環境
 def reset_game():
     snake = [[5, 5]]
-    food = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
+    food = generate_food(snake)
     direction = 3
     return {"snake_pos": snake, "food_pos": food, "snake_direction": direction}
-
 
 def step_game(state, action):
     head = list(state["snake_pos"][0])
@@ -200,7 +203,7 @@ def step_game(state, action):
 
     if head == state["food_pos"]:
         reward += 10
-        state["food_pos"] = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
+        state["food_pos"] = generate_food(state["snake_pos"])  # 使用新的生成邏輯
         state["snake_pos"].insert(0, head)
     else:
         state["snake_pos"].insert(0, head)
@@ -209,9 +212,11 @@ def step_game(state, action):
     return state, reward, False
 
 
+
 # 訓練過程
 for episode in range(num_episodes):
-     
+
+    
     state = reset_game()
     state_representation = convert_to_state(state)
     total_reward = 0
@@ -227,7 +232,7 @@ for episode in range(num_episodes):
 
         state_representation = next_state_representation
         total_reward += reward
-
+    
     stats["total_episodes"] += 1
     if total_reward < -10:
         stats["wall_hits"] += 1
@@ -242,10 +247,12 @@ for episode in range(num_episodes):
 
     if (episode + 1) % 100 == 0:
         torch.save(policy_net.state_dict(), model_path)
-    print(f"Episode {episode + 1}/{num_episodes} completed.")
+        
+    print(total_reward)
 
 
 with open(stats_file, 'w') as f:
     json.dump(stats, f, indent=4)
 
 print("訓練完成！")
+
