@@ -22,23 +22,33 @@ jobs:
         run: |
           pip install numpy torch
 
+      - name: Debug environment
+        run: |
+          python --version
+          pip list
+          ls -al
+
       - name: Run training script
         env:
           AI_SNAKE_SECRET: ${{ secrets.AI_SNAKE_SECRET }}
         run: |
-          python Main.py
+          python Main.py || exit 1
           echo "Training completed."
+
+      - name: Check if model exists
+        run: |
+          if [ -f dqn_snake_model2.pth ]; then
+            echo "Model file exists."
+          else
+            echo "Model file does not exist. Skipping commit."
+            exit 1
 
       - name: Save model to repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -f dqn_snake_model2.pth ]; then
-            echo "Model file exists. Proceeding to commit."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add dqn_snake_model2.pth
-            git commit -m "Update: Trained model saved"
-            git push origin main
-          else
-            echo "Model file does not exist. Skipping commit."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dqn_snake_model2.pth
+          git commit -m "Update: Trained model saved"
+          git push origin main
