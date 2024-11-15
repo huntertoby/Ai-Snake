@@ -32,11 +32,11 @@ learning_rate = 0.001
 gamma = 0.99
 epsilon = 1
 min_epsilon = 0.01
-epsilon_decay = 0.999
-batch_size = 1024
-memory_size = 100000
+epsilon_decay = 0.995
+batch_size = 512
+memory_size = 10000
 target_update_freq = 50
-num_episodes = 5000
+num_episodes = 1000
 
 # 定義 DQN 網絡
 import torch
