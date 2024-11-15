@@ -1,6 +1,4 @@
-import os
 import random
-import json
 import numpy as np
 import torch
 import torch.nn as nn
@@ -33,10 +31,7 @@ stats = {
     "max_score": 0
 }
 
-# 嘗試加載現有統計數據
-if os.path.exists(stats_file):
-    with open(stats_file, 'r') as f:
-        stats = json.load(f)
+
 
 # 定義 DQN 網絡
 class DQN(nn.Module):
@@ -66,14 +61,7 @@ target_net.eval()
 optimizer = optim.Adam(policy_net.parameters(), lr=learning_rate)
 memory = deque(maxlen=memory_size)
 
-# 嘗試加載已保存的模型
-model_path = 'dqn_snake_model2.pth'
-if os.path.exists(model_path):
-    policy_net.load_state_dict(torch.load(model_path, map_location=device))
-    target_net.load_state_dict(policy_net.state_dict())
-    print("已加載先前保存的模型。")
-else:
-    print("未找到先前保存的模型，將從頭開始訓練。")
+
 
 
 # 選擇動作
@@ -168,6 +156,7 @@ def update_network():
 def get_distance(snake_head, food_pos):
     return abs(snake_head[0] - food_pos[0]) + abs(snake_head[1] - food_pos[1])
 
+
 def generate_food(snake_body):
     while True:
         food = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
@@ -181,6 +170,7 @@ def reset_game():
     food = generate_food(snake)
     direction = 3
     return {"snake_pos": snake, "food_pos": food, "snake_direction": direction}
+
 
 def step_game(state, action):
     head = list(state["snake_pos"][0])
@@ -214,11 +204,9 @@ def step_game(state, action):
     return state, reward, False
 
 
-
 # 訓練過程
 for episode in range(num_episodes):
 
-    
     state = reset_game()
     state_representation = convert_to_state(state)
     total_reward = 0
@@ -234,7 +222,7 @@ for episode in range(num_episodes):
 
         state_representation = next_state_representation
         total_reward += reward
-    
+
     stats["total_episodes"] += 1
     if total_reward < -10:
         stats["wall_hits"] += 1
@@ -247,15 +235,12 @@ for episode in range(num_episodes):
     if episode % target_update_freq == 0:
         target_net.load_state_dict(policy_net.state_dict())
 
-    if (episode + 1) % 100 == 0:
-        torch.save(policy_net.state_dict(), model_path)
-        
-    print(total_reward)
 
+
+    print(total_reward)
 
 with open(stats_file, 'w') as f:
     json.dump(stats, f, indent=4)
 
 print("訓練完成！")
 
-他連開始執行都沒顯示ㄟ
