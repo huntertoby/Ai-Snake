@@ -3,11 +3,14 @@ name: Train Snake AI
 on:
   push:
     branches:
-      - main 
+      - main
 
-jobs: 
+permissions:
+  contents: write  # 授予推送權限
+
+jobs:
   train:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -34,15 +37,6 @@ jobs:
         run: |
           python Main.py || exit 1
           echo "Training completed."
-
-      - name: Check if model exists
-        run: |
-          if [ -f dqn_snake_model1.pth ]; then
-            echo "Model file exists."
-          else
-            echo "Model file does not exist."
-          fi
-
 
       - name: Save model to repository
         env:
