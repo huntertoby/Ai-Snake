@@ -1,38 +1,12 @@
-import pygame
-import random
 import os
+import random
+import json
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from collections import deque
-
-# 初始化 Pygame
-pygame.init()
-
-# 遊戲參數
-SCREEN_WIDTH = 200
-SCREEN_HEIGHT = 200
-CELL_SIZE = 20
-
-# 計算網格大小
-GRID_WIDTH = SCREEN_WIDTH // CELL_SIZE  # 10
-GRID_HEIGHT = SCREEN_HEIGHT // CELL_SIZE  # 10
-
-# 顏色設置
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLACK = (0, 0, 0)
-
-# 創建遊戲窗口
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption('貪吃蛇遊戲')
-
-# 遊戲速度設置
-clock = pygame.time.Clock()
-snake_speed = 50
+import torch.nn.functional as F
 
 # 超參數
 learning_rate = 0.001
@@ -44,13 +18,24 @@ batch_size = 1024
 memory_size = 100000
 target_update_freq = 50
 num_episodes = 5000
+grid_size = 10
+
+# 初始化統計數據
+stats_file = 'training_stats.json'
+stats = {
+    "total_episodes": 0,
+    "wall_hits": 0,
+    "self_hits": 0,
+    "avg_score": 0,
+    "max_score": 0
+}
+
+# 嘗試加載現有統計數據
+if os.path.exists(stats_file):
+    with open(stats_file, 'r') as f:
+        stats = json.load(f)
 
 # 定義 DQN 網絡
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(DQN, self).__init__()
@@ -106,16 +91,13 @@ def choose_action(state):
         # 隨機選擇合法動作
         return random.choice(valid_actions)
     else:
-        # 使用 DQN 模型進行預測
         state = torch.tensor(state, dtype=torch.float32).to(device)
         with torch.no_grad():
             q_values = policy_net(state)
-            # 過濾掉「回頭」的動作，只選擇合法的動作
             q_values = q_values.cpu().numpy()
             valid_q_values = [(i, q_values[i]) for i in valid_actions]
             best_action = max(valid_q_values, key=lambda x: x[1])[0]
             return best_action
-
 
 
 # 儲存經驗到回放記憶庫
@@ -153,200 +135,83 @@ def update_network():
     optimizer.step()
 
 
-# 執行動作
-def perform_action(action):
-    global snake_direction
-    if action == 0 and snake_direction != 'DOWN':
-        snake_direction = 'UP'
-    elif action == 1 and snake_direction != 'UP':
-        snake_direction = 'DOWN'
-    elif action == 2 and snake_direction != 'RIGHT':
-        snake_direction = 'LEFT'
-    elif action == 3 and snake_direction != 'LEFT':
-        snake_direction = 'RIGHT'
-
-def get_game_state():
-    return {
-        "snake_pos": snake_pos,
-        "food_pos": food_pos,
-        "snake_direction": snake_direction
-    }
-
-# 檢查正左、正右、正上、正下的危險
-def is_danger(point, snake_body):
-    # 使用集合來存儲蛇的身體部分（不包括頭）
-    snake_body_set = set(tuple(body_part) for body_part in snake_body[1:])
-
-    # 判斷是否超出邊界
-    boundary_danger = (point[0] < 0 or point[0] >= SCREEN_WIDTH or
-                       point[1] < 0 or point[1] >= SCREEN_HEIGHT)
-
-    # 判斷是否撞到自己的身體
-    body_danger = tuple(point) in snake_body_set
-
-    return boundary_danger or body_danger
+# 模擬遊戲環境
+def reset_game():
+    snake = [[5, 5]]
+    food = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
+    direction = 'RIGHT'
+    return snake, food, direction
 
 
-# 將遊戲狀態轉換為 DQN 可使用的狀態表示
-def convert_to_state(game_state):
-    snake_head = game_state["snake_pos"][0]
-    food_pos = game_state["food_pos"]
-    snake_body = game_state["snake_pos"]
-    snake_direction = game_state["snake_direction"]
+def step_game(snake, food, direction):
+    head = list(snake[0])
+    if direction == 'UP':
+        head[1] -= 1
+    elif direction == 'DOWN':
+        head[1] += 1
+    elif direction == 'LEFT':
+        head[0] -= 1
+    elif direction == 'RIGHT':
+        head[0] += 1
 
-    # 目前方向编碼
-    direction_mapping = {'UP': 3, 'DOWN': 4, 'LEFT': 1, 'RIGHT': 2}
-    direction_code = direction_mapping[snake_direction]
+    # 判斷撞牆或撞到自己
+    if head in snake or head[0] < 0 or head[1] < 0 or head[0] >= grid_size or head[1] >= grid_size:
+        return snake, food, direction, -30, True
 
-    # 食物位置
-    food_left = int(food_pos[0] < snake_head[0])
-    food_right = int(food_pos[0] > snake_head[0])
-    food_up = int(food_pos[1] < snake_head[1])
-    food_down = int(food_pos[1] > snake_head[1])
+    # 吃到食物
+    if head == food:
+        snake.insert(0, head)
+        food = [random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)]
+        reward = 10
+    else:
+        snake.insert(0, head)
+        snake.pop()
+        reward = -1
 
-    # 檢查正左、正右、正上、正下的危險
-    danger_left = [snake_head[0] - CELL_SIZE, snake_head[1]]
-    danger_right = [snake_head[0] + CELL_SIZE, snake_head[1]]
-    danger_up = [snake_head[0], snake_head[1] - CELL_SIZE]
-    danger_down = [snake_head[0], snake_head[1] + CELL_SIZE]
-
-    danger_left_flag = int(is_danger(danger_left, snake_body))
-    danger_right_flag = int(is_danger(danger_right, snake_body))
-    danger_up_flag = int(is_danger(danger_up, snake_body))
-    danger_down_flag = int(is_danger(danger_down, snake_body))
-
-    # 狀態元組
-    state = (direction_code, food_left, food_right, food_up, food_down,
-             danger_left_flag, danger_right_flag, danger_up_flag, danger_down_flag)
-
-    return state
+    return snake, food, direction, reward, False
 
 
-# 獲取距離
-def get_distance(snake_head, food_pos):
-    return abs(snake_head[0] - food_pos[0]) + abs(snake_head[1] - food_pos[1])
-
-# 訓練循環
+# 訓練過程
 for episode in range(num_episodes):
-    snake_pos = [[100, 60], [80, 60], [60, 60]]
-    snake_direction = 'RIGHT'
-    food_pos = [random.randrange(0, GRID_WIDTH) * CELL_SIZE,
-                random.randrange(0, GRID_HEIGHT) * CELL_SIZE]
-    food_spawn = True
-    game_over = False
-
-    game_state = get_game_state()
-    state = convert_to_state(game_state)
-
+    snake, food, snake_direction = reset_game()
+    state = (snake[0][0], snake[0][1], food[0], food[1], snake_direction)
     total_reward = 0
-    steps = 0
-    food_eaten = 0
+    done = False
 
-    while not game_over:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-        # 選擇並執行動作
-        game_state = get_game_state()
-        state = convert_to_state(game_state)
+    while not done:
         action = choose_action(state)
-        perform_action(action)
+        snake, food, snake_direction, reward, done = step_game(snake, food, snake_direction)
+        next_state = (snake[0][0], snake[0][1], food[0], food[1], snake_direction)
 
-        # 更新蛇的位置
-        if snake_direction == 'UP':
-            new_head = [snake_pos[0][0], snake_pos[0][1] - CELL_SIZE]
-        elif snake_direction == 'DOWN':
-            new_head = [snake_pos[0][0], snake_pos[0][1] + CELL_SIZE]
-        elif snake_direction == 'LEFT':
-            new_head = [snake_pos[0][0] - CELL_SIZE, snake_pos[0][1]]
-        elif snake_direction == 'RIGHT':
-            new_head = [snake_pos[0][0] + CELL_SIZE, snake_pos[0][1]]
-
-        snake_pos.insert(0, new_head)
-
-        reward = 0
-        new_distance = get_distance(new_head, food_pos)
-
-        # 根據距離變化給予獎勵/懲罰
-        if new_distance < get_distance(snake_pos[0], food_pos):
-            reward += 1  # 如果接近果實，給予獎勵
-        elif new_distance > get_distance(snake_pos[0], food_pos):
-            reward -= 1  # 如果遠離果實，給予懲罰
-
-        if snake_pos[0] == food_pos:
-            reward += 5 * len(snake_pos)  # 吃到食物的獎勵
-            food_spawn = False
-            food_eaten += 1
-        else:
-            snake_pos.pop()
-
-        if (snake_pos[0][0] < 0 or snake_pos[0][0] >= SCREEN_WIDTH or
-                snake_pos[0][1] < 0 or snake_pos[0][1] >= SCREEN_HEIGHT or
-                snake_pos[0] in snake_pos[1:]):
-            reward -= 30
-            game_over = True
-            if snake_pos[0][0] < 0 or snake_pos[0][0] >= SCREEN_WIDTH or snake_pos[0][1] < 0 or snake_pos[0][
-                1] >= SCREEN_HEIGHT:
-                print("Game over: Snake hit the wall.")
-            else:
-                print("Game over: Snake hit itself.")
-
-        total_reward += reward
-        steps += 1
-
-        # 食物重新生成
-        if not food_spawn:
-            while True:
-                food_pos = [random.randrange(0, GRID_WIDTH) * CELL_SIZE,
-                            random.randrange(0, GRID_HEIGHT) * CELL_SIZE]
-                if food_pos not in snake_pos:
-                    break
-            food_spawn = True
-
-        next_game_state = get_game_state()
-        next_state = convert_to_state(next_game_state)
-
-        store_transition(state, action, reward, next_state, game_over)
-
-        # 每隔4步更新一次 Q 網絡
-        if steps % 4 == 0:
-            update_network()
+        store_transition(state, action, reward, next_state, done)
+        update_network()
 
         state = next_state
+        total_reward += reward
 
-        # 畫面更新
-        # if episode % 100 == 0:
-        screen.fill(BLACK)
-        for pos in snake_pos:
-            pygame.draw.rect(screen, GREEN, pygame.Rect(pos[0], pos[1], CELL_SIZE, CELL_SIZE))
-        pygame.draw.rect(screen, RED, pygame.Rect(food_pos[0], food_pos[1], CELL_SIZE, CELL_SIZE))
-        pygame.display.flip()
-        # clock.tick(snake_speed)
+    # 記錄數據
+    stats["total_episodes"] += 1
+    if any(part[0] < 0 or part[1] < 0 or part[0] >= grid_size or part[1] >= grid_size for part in snake):
+        stats["wall_hits"] += 1
+    if len(snake) != len(set(tuple(part) for part in snake)):
+        stats["self_hits"] += 1
+    stats["avg_score"] = (stats["avg_score"] * (stats["total_episodes"] - 1) + total_reward) / stats["total_episodes"]
+    stats["max_score"] = max(stats["max_score"], total_reward)
 
-    # 衰減 epsilon（探索率）
+    # 衰減 epsilon
     if epsilon > min_epsilon:
         epsilon *= epsilon_decay
 
-    # 每隔一定回合更新目標網絡
+    # 更新目標網絡
     if episode % target_update_freq == 0:
         target_net.load_state_dict(policy_net.state_dict())
 
-    # 每隔 100 回合保存模型
+    # 保存模型
     if (episode + 1) % 100 == 0:
         torch.save(policy_net.state_dict(), model_path)
-        print(f"模型在第 {episode + 1} 回合已保存。")
 
-    # 打印回合信息
-    print(f"回合 {episode + 1}/{num_episodes} 完成。")
-    print(f"總獎勵: {total_reward}")
-    print(f"步數: {steps}")
-    print(f"吃到食物次數: {food_eaten}")
-    print(f"最終蛇長度: {len(snake_pos)}")
-    print(f"Epsilon: {epsilon:.4f}")
-    print("-" * 30)
+# 儲存統計數據
+with open(stats_file, 'w') as f:
+    json.dump(stats, f, indent=4)
 
-    # a = input()
-
-pygame.quit()
+print("訓練完成！")
