@@ -37,7 +37,7 @@ jobs:
 
       - name: Check if model exists
         run: |
-          if [ -f dqn_snake_model2.pth ]; then
+          if [ -f dqn_snake_model1.pth ]; then
             echo "Model file exists."
           else
             echo "Model file does not exist. Skipping commit."
