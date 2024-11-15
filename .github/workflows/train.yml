@@ -22,12 +22,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install numpy torch
-          
+
       - name: Run training script
         run: python Main.py
 
-      - name: Upload training stats
-        uses: actions/upload-artifact@v3
-        with:
-          name: training-stats
-          path: training_stats.json
+      - name: Save model to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dqn_snake_model2.pth
+          git commit -m "Update: Trained model saved"
+          git push origin main
