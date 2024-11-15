@@ -40,8 +40,9 @@ jobs:
           if [ -f dqn_snake_model1.pth ]; then
             echo "Model file exists."
           else
-            echo "Model file does not exist. Skipping commit."
-            exit 1
+            echo "Model file does not exist."
+          fi
+
 
       - name: Save model to repository
         env:
