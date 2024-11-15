@@ -8,6 +8,8 @@ import torch.optim as optim
 from collections import deque
 import torch.nn.functional as F
 
+print("Work Start。")
+
 # 超參數
 learning_rate = 0.001
 gamma = 0.99
@@ -209,6 +211,7 @@ def step_game(state, action):
 
 # 訓練過程
 for episode in range(num_episodes):
+     
     state = reset_game()
     state_representation = convert_to_state(state)
     total_reward = 0
@@ -239,6 +242,8 @@ for episode in range(num_episodes):
 
     if (episode + 1) % 100 == 0:
         torch.save(policy_net.state_dict(), model_path)
+    print(f"Episode {episode + 1}/{num_episodes} completed.")
+
 
 with open(stats_file, 'w') as f:
     json.dump(stats, f, indent=4)
