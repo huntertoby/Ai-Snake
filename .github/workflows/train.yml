@@ -50,6 +50,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dqn_snake_model2.pth
+          git add dqn_snake_model1.pth
           git commit -m "Update: Trained model saved"
           git push origin main
