@@ -22,6 +22,6 @@ jobs:
 
     - name: Pass Secret and Run Script
       env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
       run: |
         python test.py
