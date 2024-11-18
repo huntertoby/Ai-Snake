@@ -53,7 +53,7 @@ class ReplayMemory:
 # DQN 代理
 class DQNAgent:
     def __init__(self, state_size, action_size):
-        self.memory = ReplayMemory(100000)
+        self.memory = ReplayMemory(50000)
         self.batch_size = 64
         self.gamma = 0.99  # 折扣因子
         self.epsilon = 1  # 探索率
