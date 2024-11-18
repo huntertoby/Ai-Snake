@@ -6,6 +6,9 @@ jobs:
   test_env:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # 配置 GITHUB_TOKEN 的權限
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -20,8 +23,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install python-dotenv
 
-    - name: Pass Secret and Run Script
+    - name: Pass Token and Run Script
       env:
-        GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python test.py
