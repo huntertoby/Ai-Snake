@@ -28,7 +28,14 @@ jobs:
       run: |
         python Train.py
 
-    # Step 5: Push snake_dqn_latest.pth to repository
+    # Step 5: Debug Secrets
+    - name: Debug Secrets
+      run: |
+        echo "Token length: ${#PAT}"
+      env:
+        PAT: ${{ secrets.AI_SNAKE_TRAIN }}
+
+    # Step 6: Push model file
     - name: Configure Git
       run: |
         git config --global user.name "github-actions[bot]"
@@ -36,14 +43,9 @@ jobs:
 
     - name: Push model file
       env:
-        PAT: ${{ secrets.AI_SNAKE_TRAIN_POST_RELEASE }}
+        PAT: ${{ secrets.AI_SNAKE_TRAIN }}
       run: |
         git pull
         git add snake_dqn_latest.pth
         git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
-        git push https://${{ secrets.AI_SNAKE_TRAIN_POST_RELEASE }}@github.com/huntertoby/Ai-Snake.git HEAD:main
-
-    # Step 6: Run post_release_ai_train_data.py
-    - name: Post-process training data
-      run: |
-        python post_release_ai_train_data.py
+        git push https://${{ secrets.AI_SNAKE_TRAIN }}@github.com/huntertoby/Ai-Snake.git HEAD:main
