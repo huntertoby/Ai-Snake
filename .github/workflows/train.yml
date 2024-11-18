@@ -36,7 +36,7 @@ jobs:
 
     - name: Push model file
       env:
-        PAT: ${{ secrets.PAT }}
+        PAT: ${{ secrets.AI_SNAKE_TRAIN_POST_RELEASE }}
       run: |
         git pull
         git add snake_dqn_latest.pth
