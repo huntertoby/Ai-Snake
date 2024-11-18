@@ -1,48 +1,53 @@
-name: Train and Push AI Snake Model
-on:
-  workflow_dispatch:
+import os
+import requests
 
-jobs:
-  train_and_push:
-    runs-on: ubuntu-latest
+# 配置 GitHub Token 和儲存庫名稱
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 從環境變數獲取 GitHub Token
+REPO = "huntertoby/Ai-Snake"  # 替換為你的儲存庫名稱
 
-    permissions:
-      contents: write
+def create_release(tag_name, release_name, description, file_path):
+    url = f"https://api.github.com/repos/{REPO}/releases"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    data = {
+        "tag_name": tag_name,
+        "name": release_name,
+        "body": description,
+        "draft": False,
+        "prerelease": False,
+    }
 
-    steps:
-    # Step 1: Checkout repository
-    - name: Checkout code
-      uses: actions/checkout@v3
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code == 201:
+        release = response.json()
+        upload_url = release["upload_url"].split("{")[0]
+        upload_asset(upload_url, file_path)
+    else:
+        print(f"Failed to create release: {response.json()}")
 
-    # Step 2: Set up Python environment
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
+def upload_asset(upload_url, file_path):
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/octet-stream",
+    }
+    params = {"name": os.path.basename(file_path)}
 
-    # Step 3: Install dependencies
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install numpy torch requests
+    with open(file_path, "rb") as file:
+        response = requests.post(upload_url, headers=headers, params=params, data=file)
+        if response.status_code == 201:
+            print(f"Successfully uploaded {file_path} to release.")
+        else:
+            print(f"Failed to upload asset: {response.json()}")
 
-    # Step 4: Run Train.py
-    - name: Train model
-      run: |
-        python Train.py
+if __name__ == "__main__":
+    tag = "training-results"
+    release_name = "AI Snake Training Results"
+    description = "This release contains the training results for AI Snake."
+    result_file = "snake_dqn_latest.pth"
 
-    # Step 5: Authenticate and Push model file
-    - name: Push model file
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git pull origin main
-        git add snake_dqn_latest.pth
-        git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
-        git push origin HEAD:main
-   # Step 6: Run post_release_ai_train_data.py
-    - name: Post-process training data
-      run: |
-        python post_release_ai_train_data.py      
+    if os.path.exists(result_file):
+        create_release(tag, release_name, description, result_file)
+    else:
+        print(f"{result_file} does not exist.")
