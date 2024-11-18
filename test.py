@@ -1,3 +1,9 @@
-print(AI_SNAKE_ACTIONS_SECRETS)
-if not AI_SNAKE_ACTIONS_SECRETS:
-    print("GITHUB_TOKEN is not set or is empty.")
+import os
+
+# 從環境變數中讀取 secret
+secret = os.getenv("AI_SNAKE_ACTIONS_SECRETS")
+
+if secret:
+    print(f"The secret is: {secret}")
+else:
+    print("The secret is not available. Please check the configuration.")
