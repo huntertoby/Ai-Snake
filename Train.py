@@ -30,10 +30,6 @@ for episode in range(num_episodes):
     # agent.epsilon = 0.01
 
     while not done:
-        # 环境渲染（可选）
-
-        # env.render(false)
-
         valid_actions = env.get_valid_actions()
 
         action = agent.select_action(state, valid_actions)
