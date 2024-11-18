@@ -30,7 +30,7 @@ for episode in range(1, num_episodes + 1):
         agent.epsilon = 1.0
 
     # 遞減 epsilon
-    agent.epsilon = max(agent.min_epsilon, agent.epsilon * agent.epsilon_decay)
+    agent.epsilon = max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay)
 
     while not done:
         valid_actions = env.get_valid_actions()
