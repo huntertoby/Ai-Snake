@@ -6,15 +6,6 @@ import SnakeGameEnv
 env = SnakeGameEnv.SnakeGame()
 agent = DQN.DQNAgent((1, 10, 10), 4)
 
-# 嘗試加載模型
-model_path = "snake_dqn_latest.pth"
-try:
-    agent.policy_net.load_state_dict(torch.load(model_path))
-    agent.target_net.load_state_dict(agent.policy_net.state_dict())
-    print(f"模型已加載：{model_path}")
-except FileNotFoundError:
-    print(f"未找到模型文件：{model_path}，將從頭開始訓練。")
-
 # 訓練相關參數
 num_episodes = 1000
 highest_score = 0
