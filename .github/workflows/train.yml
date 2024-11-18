@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload Training Results
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.AI_SNAKE_TRAIN }}
         run: |
           python post_release_ai_train_data.py
           echo "Training results uploaded as release."
