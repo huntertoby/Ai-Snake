@@ -44,5 +44,7 @@ jobs:
         git push origin HEAD:main
    # Step 6: Run post_release_ai_train_data.py
     - name: Post-process training data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python post_release_ai_train_data.py      
