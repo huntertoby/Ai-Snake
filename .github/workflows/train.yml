@@ -1,13 +1,15 @@
 name: Train and Push AI Snake Model
+
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # 手動觸發
 
 jobs:
   train_and_push:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write  # 允許工作流程更新儲存庫內容
+      actions: write  # 允許觸發後續的 GitHub Actions
 
     steps:
     # Step 1: Checkout repository
@@ -42,9 +44,13 @@ jobs:
         git add snake_dqn_latest.pth
         git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
         git push origin HEAD:main
-   # Step 6: Run post_release_ai_train_data.py
-    - name: Post-process training data
+
+    # Step 6: Trigger next execution
+    - name: Schedule next run
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        python post_release_ai_train_data.py      
+        curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/${{ github.workflow }}/dispatches \
+        -d '{"ref":"main"}'
