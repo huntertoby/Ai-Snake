@@ -1,1 +1,15 @@
+name: Test
+on:
+  workflow_dispatch:
 
+jobs:
+  train_and_push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name:  TEST
+      run: |
+        python test.py
