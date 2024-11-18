@@ -58,7 +58,7 @@ class DQNAgent:
         self.gamma = 0.99  # 折扣因子
         self.epsilon = 1  # 探索率
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.997
+        self.epsilon_decay = 0.995
         self.learning_rate = 1e-3
         self.update_target_freq = 100  # 目标网络更新频率
 
