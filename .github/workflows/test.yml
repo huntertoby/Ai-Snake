@@ -22,4 +22,4 @@ jobs:
 
     - name: Run Python Script
       run: |
-        python your_script.py
+        python test.py
