@@ -1,10 +1,9 @@
 import os
 
-# 獲取 GITHUB_ENV 文件的路徑
+# 獲取 GITHUB_TOKEN
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 if GITHUB_TOKEN:
-    print(true)
+    print("GITHUB_TOKEN is available.")
 else:
-    print(false)
-    
+    print("GITHUB_TOKEN is not available. Please check the configuration.")
