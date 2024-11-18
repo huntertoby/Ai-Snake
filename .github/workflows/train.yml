@@ -42,3 +42,7 @@ jobs:
         git add snake_dqn_latest.pth
         git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
         git push origin HEAD:main
+   # Step 6: Run post_release_ai_train_data.py
+    - name: Post-process training data
+      run: |
+        python post_release_ai_train_data.py      
