@@ -21,13 +21,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install numpy torch requests
+          pip install -r requirements.txt
 
       - name: Debug environment
         run: |
           python --version
           pip list
           ls -al
+
+      - name: Record start time
+        run: echo "Training started at: $(date)"
 
       - name: Run training script
         env:
@@ -42,11 +45,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main --rebase   # 拉取並合併遠端分支
+          git add .
+          git commit -m "Save local changes before pull" || echo "No changes to commit"
+          git pull origin main --rebase
           git add snake_dqn_latest.pth
           git commit -m "Update: Trained model saved"
           git push origin main
-
 
       - name: Upload Training Results
         env:
@@ -54,3 +58,6 @@ jobs:
         run: |
           python post_release_ai_train_data.py
           echo "Training results uploaded as release."
+
+      - name: Record end time
+        run: echo "Training ended at: $(date)"
