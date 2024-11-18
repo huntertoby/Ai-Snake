@@ -1,4 +1,7 @@
 import os
+import dotenv
+
+dotenv.load_dotenv()
 
 # 從環境變數中讀取 secret
 print (os.environ)
