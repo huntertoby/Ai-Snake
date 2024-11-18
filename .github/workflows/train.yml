@@ -28,14 +28,7 @@ jobs:
       run: |
         python Train.py
 
-    # Step 5: Debug Secrets
-    - name: Debug Secrets
-      run: |
-        echo "Token length: ${#PAT}"
-      env:
-        PAT: ${{ secrets.AI_SNAKE_TRAIN }}
-
-    # Step 6: Push model file
+    # Step 5: Push model file to repository
     - name: Configure Git
       run: |
         git config --global user.name "github-actions[bot]"
