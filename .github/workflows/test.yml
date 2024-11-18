@@ -10,6 +10,19 @@ jobs:
       contents: write
 
     steps:
-    - name:  TEST
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9  # 替換為需要的 Python 版本
+
+    - name: List Files
+      run: |
+        pwd
+        ls -R  # 檢查當前目錄結構
+
+    - name: Run Test Script
       run: |
         python test.py
