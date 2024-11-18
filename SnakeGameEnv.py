@@ -1,6 +1,6 @@
 import random
 import numpy as np
-import pygame
+
 
 
 class SnakeGame:
@@ -11,10 +11,6 @@ class SnakeGame:
         self.cell_size = 40
         self.ACTION_SPACE = ['up', 'right', 'down', 'left']
 
-        pygame.init()
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption("AI-SNAKE")
-        clock = pygame.time.Clock()
         snake_Speed = 50
         self.max_steps_without_food = 50
 
@@ -78,16 +74,6 @@ class SnakeGame:
             return True
         return False
 
-    def render(self,play):
-        # 渲染游戏画面
-        self.screen.fill((0, 0, 0))
-        for pos in self.snake_pos:
-            pygame.draw.rect(self.screen, (0, 255, 0), pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
-        pygame.draw.rect(self.screen, (255, 0, 0),
-                         pygame.Rect(self.food_pos[0], self.food_pos[1], self.cell_size, self.cell_size))
-        pygame.display.flip()
-        if play:pygame.time.Clock().tick(10)
-
     # 在 SnakeGameEnv 类中，添加一个函数来获取当前的允许动作
     def get_valid_actions(self):
         opposite_directions = {'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left'}
@@ -149,14 +135,12 @@ class SnakeGame:
 
         # 在移动蛇之前计算蛇头和食物之间的距离
         prev_distance = self.get_distance(self.snake_pos[0], self.food_pos)
-        self.steps_since_last_food += 1
+
         reward = 0
         # 执行动作
         self.change_direction(action)
         self.update_snake_position()
-
-        new_distance = self.get_distance(self.snake_pos[0], self.food_pos)
-
+        
         done = False
 
         if self.snake_pos[0] == self.food_pos:
@@ -170,6 +154,5 @@ class SnakeGame:
         if self.is_collision() or self.is_dead_end() :
             done = True
             reward = -10  # 碰撞的惩罚
-
 
         return self.get_state(), reward, done
