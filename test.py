@@ -5,6 +5,6 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 if GITHUB_TOKEN:
     print(true)
-else
+else:
     print(false)
     
