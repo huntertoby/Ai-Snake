@@ -1,7 +1,8 @@
 name: Train Snake AI
 
 on:
-  workflow_dispatch:    
+  workflow_dispatch:  # 支援手動觸發
+
 permissions:
   contents: write  # 授予推送權限
 
@@ -41,6 +42,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dqn_snake_model1.pth
+          git add snake_dqn_latest.pth
           git commit -m "Update: Trained model saved"
           git push origin main
+
+      - name: Upload Training Results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python post_release_ai_train_data.py
+          echo "Training results uploaded as release."
