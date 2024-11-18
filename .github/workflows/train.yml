@@ -1,9 +1,9 @@
-name: Train and Post Process AI Snake
+name: Train and Push AI Snake Model
 on:
   workflow_dispatch:
 
 jobs:
-  train_and_process:
+  train_and_push:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,13 +27,23 @@ jobs:
     - name: Train model
       run: |
         python Train.py
-      env:
-        MODEL_PATH: "snake_dqn_latest.pth" # Specify the model file path
-        TRAIN_RESULTS_PATH: "./train_results"
 
-    # Step 5: Run post_release_ai_train_data.py
-    - name: Post-process training data
+    # Step 5: Push snake_dqn_latest.pth to repository
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Push model file
       env:
-        GITHUB_TOKEN: ${{ secrets.AI_SNAKE_TRAIN_POST_RELEASE }}
+        PAT: ${{ secrets.PAT }}
+      run: |
+        git pull
+        git add snake_dqn_latest.pth
+        git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
+        git push https://${{ secrets.PAT }}@github.com/owner/repository.git HEAD:main
+
+    # Step 6: Run post_release_ai_train_data.py
+    - name: Post-process training data
       run: |
         python post_release_ai_train_data.py
