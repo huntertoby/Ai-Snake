@@ -1,11 +1,7 @@
 name: Train Snake AI
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:    
-
 permissions:
   contents: write  # 授予推送權限
 
