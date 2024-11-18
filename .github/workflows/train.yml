@@ -30,7 +30,7 @@ jobs:
         run: |
           python Train.py
           echo "Training completed."
-
+      
       - name: Save model to repository
               env:
                 GITHUB_TOKEN: ${{ secrets.AI_SNAKE_TRAIN }}
