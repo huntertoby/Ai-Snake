@@ -3,26 +3,23 @@ on:
   workflow_dispatch:
 
 jobs:
-  train_and_push:
+  test_env:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install Python
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9  # 替換為需要的 Python 版本
+        python-version: 3.9
 
-    - name: List Files
+    - name: Install Dependencies
       run: |
-        pwd
-        ls -R  # 檢查當前目錄結構
+        python -m pip install --upgrade pip
+        pip install python-dotenv
 
-    - name: Run Test Script
+    - name: Run Python Script
       run: |
-        python test.py
+        python your_script.py
