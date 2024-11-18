@@ -36,7 +36,7 @@ jobs:
         env:
           AI_SNAKE_SECRET: ${{ secrets.AI_SNAKE_SECRET }}
         run: |
-          python Main.py || exit 1
+          python Train.py || exit 1
           echo "Training completed."
 
       - name: Save model to repository
