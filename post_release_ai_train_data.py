@@ -1,11 +1,17 @@
 import os
 import requests
+from datetime import datetime
 
-# 配置 GitHub Token 和儲存庫名稱
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 設定為 GitHub Actions 的 secret
+# 獲取 GITHUB_TOKEN
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO = "huntertoby/Ai-Snake"  # 替換為你的儲存庫名稱
 
-def create_release(tag_name, release_name, description, file_path):
+if not GITHUB_TOKEN:
+    raise EnvironmentError("GITHUB_TOKEN is not set. Please check the environment variables.")
+
+print(f"Using GITHUB_TOKEN: {GITHUB_TOKEN[:4]}***")  # 僅顯示部分 Token 用於調試
+
+def create_release(tag_name, release_name, description):
     url = f"https://api.github.com/repos/{REPO}/releases"
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -13,41 +19,32 @@ def create_release(tag_name, release_name, description, file_path):
     }
     data = {
         "tag_name": tag_name,
-        "name": release_name,
-        "body": description,
+        "name": release_name,  # 使用動態標題
+        "body": description,   # 文件內容作為描述
         "draft": False,
         "prerelease": False,
     }
 
     response = requests.post(url, json=data, headers=headers)
     if response.status_code == 201:
+        print("Release created successfully.")
         release = response.json()
-        upload_url = release["upload_url"].split("{")[0]
-        upload_asset(upload_url, file_path)
+        print(f"Release URL: {release['html_url']}")
     else:
-        print(f"Failed to create release: {response.json()}")
-
-def upload_asset(upload_url, file_path):
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Content-Type": "text/plain",
-    }
-    params = {"name": os.path.basename(file_path)}
-
-    with open(file_path, "rb") as file:
-        response = requests.post(upload_url, headers=headers, params=params, data=file)
-        if response.status_code == 201:
-            print(f"Successfully uploaded {file_path} to release.")
-        else:
-            print(f"Failed to upload asset: {response.json()}")
+        print(f"Failed to create release: {response.status_code}, {response.json()}")
 
 if __name__ == "__main__":
-    tag = "training-results"
-    release_name = "AI Snake Training Results"
-    description = "This release contains the training results for AI Snake."
-    result_file = "train_results.txt"
+    # 動態生成標題和標籤
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    tag = f"training-results-{datetime.now().strftime('%Y%m%d')}"
+    release_name = f"AI Snake Training Results ({current_time})"
 
+    # 讀取 train_results.txt 的內容作為 Release 描述
+    result_file = "train_results.txt"
     if os.path.exists(result_file):
-        create_release(tag, release_name, description, result_file)
+        with open(result_file, "r") as file:
+            description = file.read()  # 讀取文件內容
     else:
-        print(f"{result_file} does not exist.")
+        description = "No training results available. File not found."
+
+    create_release(tag, release_name, description)
