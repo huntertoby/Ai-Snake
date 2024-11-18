@@ -43,7 +43,6 @@ jobs:
           git add snake_dqn_latest.pth || echo "No model file to add"
           git commit -m "Update: Trained model saved" || echo "No changes to commit"
           git push origin main --force || echo "Nothing to push"
-      
 
       - name: Upload Training Results
         env:
