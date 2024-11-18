@@ -1,8 +1,10 @@
 import os
 
 # 獲取 GITHUB_ENV 文件的路徑
-env_file = os.getenv('GITHUB_ENV')
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
-# 寫入新的環境變數
-with open(env_file, "a") as myfile:
-    myfile.write("MY_VAR=MY_VALUE\n")
+if GITHUB_TOKEN:
+    print(true)
+else
+    print(false)
+    
