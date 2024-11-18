@@ -2,7 +2,7 @@ import os
 import requests
 
 # 配置 GitHub Token 和儲存庫名稱
-GITHUB_TOKEN = os.getenv("AI_SNAKE_TRAIN_POST_RELEASE")  # 設定為 GitHub Actions 的 secret
+GITHUB_TOKEN = os.getenv("Ai_Snake_Actions_secrets")  # 設定為 GitHub Actions 的 secret
 REPO = "huntertoby/Ai-Snake"  # 替換為你的儲存庫名稱
 
 def create_release(tag_name, release_name, description, file_path):
