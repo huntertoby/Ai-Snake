@@ -86,51 +86,7 @@ class SnakeGame:
         dx = pos1[0] - pos2[0]
         dy = pos1[1] - pos2[1]
         return (dx ** 2 + dy ** 2) ** 0.5
-
-    def is_dead_end(self):
-        from queue import PriorityQueue
-
-        def heuristic(a, b):
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-        snake_head = self.snake_pos[0]
-        target = tuple(self.food_pos)
-
-        open_set = PriorityQueue()
-        open_set.put((0, snake_head))
-        came_from = {}
-        g_score = {tuple(snake_head): 0}
-        f_score = {tuple(snake_head): heuristic(snake_head, target)}
-
-        while not open_set.empty():
-            current = open_set.get()[1]
-
-            if current == target:
-                return False  # 找到安全路徑，非死路
-
-            # 遍歷鄰居節點（上下左右）
-            neighbors = [
-                (current[0], current[1] - self.cell_size),  # 上
-                (current[0], current[1] + self.cell_size),  # 下
-                (current[0] - self.cell_size, current[1]),  # 左
-                (current[0] + self.cell_size, current[1])  # 右
-            ]
-
-            for neighbor in neighbors:
-                # 檢查是否越界或撞到自己
-                if (0 <= neighbor[0] < self.screen_width and
-                        0 <= neighbor[1] < self.screen_height and
-                        list(neighbor) not in self.snake_pos):
-                    tentative_g_score = g_score[tuple(current)] + 1
-
-                    if tuple(neighbor) not in g_score or tentative_g_score < g_score[tuple(neighbor)]:
-                        came_from[tuple(neighbor)] = current
-                        g_score[tuple(neighbor)] = tentative_g_score
-                        f_score[tuple(neighbor)] = tentative_g_score + heuristic(neighbor, target)
-                        open_set.put((f_score[tuple(neighbor)], neighbor))
-
-        return True  # 沒有找到安全路徑，判定為死路
-
+        
     def step(self, action):
 
         # 在移动蛇之前计算蛇头和食物之间的距离
