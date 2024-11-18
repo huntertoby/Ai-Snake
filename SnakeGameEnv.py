@@ -107,7 +107,7 @@ class SnakeGame:
             self.snake_pos.pop()
 
         # 检查游戏是否结束
-        if self.is_collision() or self.is_dead_end() :
+        if self.is_collision():
             done = True
             reward = -10  # 碰撞的惩罚
 
