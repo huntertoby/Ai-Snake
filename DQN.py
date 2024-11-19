@@ -11,11 +11,11 @@ class DQN(nn.Module):
     def __init__(self, input_shape, num_actions):
         super(DQN, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 32 x H x W
+            nn.Conv2d(input_shape[0], 32, kernel_size=3, stride=1, padding=1),  # 输出维度: 32 x H x W
             nn.ReLU(),
-            nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
+            nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
             nn.ReLU(),
-            nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
+            nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
             nn.ReLU(),
         )
         # 计算卷积层的输出维度
