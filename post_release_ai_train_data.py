@@ -1,6 +1,7 @@
 import os
 import requests
 from datetime import datetime
+import pytz  # 新增這行
 
 # 獲取 GITHUB_TOKEN
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -34,9 +35,10 @@ def create_release(tag_name, release_name, description):
         print(f"Failed to create release: {response.status_code}, {response.json()}")
 
 if __name__ == "__main__":
-    # 動態生成標題和標籤
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    tag = f"training-results-{datetime.now().strftime('%Y%m%d-%H%M')}"
+    # 設定台灣時區
+    tz = pytz.timezone("Asia/Taipei")
+    current_time = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+    tag = f"training-results-{datetime.now(tz).strftime('%Y%m%d-%H%M')}"
     release_name = f"AI Snake Training Results ({current_time})"
 
     # 讀取 train_results.txt 的內容作為 Release 描述
