@@ -11,11 +11,11 @@ class DQN(nn.Module):
     def __init__(self, input_shape, num_actions):
         super(DQN, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 64, kernel_size=3, stride=1, padding=1),  # 输出维度: 32 x H x W
+            nn.Conv2d(input_shape[0], 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 32 x H x W
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
+            nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
+            nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),  # 输出维度: 64 x H x W
             nn.ReLU(),
         )
         # 计算卷积层的输出维度
@@ -54,7 +54,7 @@ class ReplayMemory:
 class DQNAgent:
     def __init__(self, state_size, action_size):
         self.memory = ReplayMemory(50000)
-        self.batch_size = 64
+        self.batch_size = 32
         self.gamma = 0.99  # 折扣因子
         self.epsilon = 1  # 探索率
         self.epsilon_min = 0.01
