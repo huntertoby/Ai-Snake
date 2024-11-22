@@ -1,5 +1,6 @@
 import os
 import requests
+import matplotlib.pyplot as plt
 from datetime import datetime
 import pytz
 import base64
@@ -51,6 +52,60 @@ def extract_training_count(content):
             return int(count_str)
     return 0
 
+def create_release(tag_name, release_name, description, asset_path):
+    """創建 GitHub Release 並上傳圖表"""
+    url = f"https://api.github.com/repos/{REPO}/releases"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    data = {
+        "tag_name": tag_name,
+        "name": release_name,
+        "body": description,
+        "draft": False,
+        "prerelease": False,
+    }
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code == 201:
+        print("Release created successfully.")
+        release = response.json()
+        upload_url = release["upload_url"].replace("{?name,label}", "")
+        # 上傳圖表
+        with open(asset_path, "rb") as file:
+            headers["Content-Type"] = "application/octet-stream"
+            upload_response = requests.post(
+                f"{upload_url}?name={os.path.basename(asset_path)}", 
+                headers=headers, 
+                data=file
+            )
+        if upload_response.status_code == 201:
+            print(f"Asset uploaded successfully: {asset_path}")
+        else:
+            print(f"Failed to upload asset: {upload_response.status_code}, {upload_response.json()}")
+    else:
+        print(f"Failed to create release: {response.status_code}, {response.json()}")
+
+def plot_results(results):
+    """繪製分數和探索值的圖表"""
+    episodes = [int(line.split("Episode ")[1].split(" |")[0]) for line in results]
+    scores = [int(line.split("Score: ")[1].split(" |")[0]) for line in results]
+    epsilons = [float(line.split("Epsilon: ")[1].strip()) for line in results]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(episodes, scores, label="Score", marker="o")
+    plt.plot(episodes, epsilons, label="Epsilon", marker="x")
+    plt.xlabel("Episode")
+    plt.ylabel("Value")
+    plt.title("Training Results: Score and Epsilon over Episodes")
+    plt.legend()
+    plt.grid(True)
+
+    output_path = "training_results.png"
+    plt.savefig(output_path)
+    print(f"Plot saved as {output_path}")
+    return output_path
+
 if __name__ == "__main__":
     # 設定台灣時區
     tz = pytz.timezone("Asia/Taipei")
@@ -70,6 +125,9 @@ if __name__ == "__main__":
     else:
         print("No training results available. File not found.")
         exit()
+
+    # 繪製圖表
+    chart_path = plot_results(results)
 
     # 獲取 README 文件
     readme = get_readme()
@@ -98,3 +156,14 @@ if __name__ == "__main__":
         # 編碼新的 README 文件內容
         encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
         update_readme(encoded_content, readme_sha)
+
+    # 創建 Release
+    tag_name = f"training-results-{datetime.now(tz).strftime('%Y%m%d-%H%M')}"
+    release_name = f"AI Snake Training Results ({current_time})"
+    release_description = f"""
+### 訓練結果
+- **最佳成績**: {score}
+- **探索值**: {epsilon}
+- **訓練次數**: {updated_training_count}
+    """
+    create_release(tag_name, release_name, release_description, chart_path)
