@@ -44,13 +44,16 @@ def update_readme(content, sha):
     else:
         print(f"Failed to update README.md: {response.status_code}, {response.json()}")
 
-def extract_training_count(content):
-    """從 README 內容中提取訓練次數"""
+def extract_training_count_and_best_score(content):
+    """從 README 內容中提取訓練次數和最佳分數"""
+    training_count = 0
+    best_score = 0
     for line in content.splitlines():
         if line.startswith("現在已經訓練了:"):
-            count_str = line.split(": **")[1].split("**")[0].strip()
-            return int(count_str)
-    return 0
+            training_count = int(line.split(": **")[1].split("**")[0].strip())
+        if line.startswith("**分數**:"):
+            best_score = int(line.split(": ")[1].strip())
+    return training_count, best_score
 
 def create_release(tag_name, release_name, description, asset_path):
     """創建 GitHub Release 並上傳圖表"""
@@ -120,7 +123,7 @@ if __name__ == "__main__":
             # 提取最高分和對應資訊
             best_result = max(results, key=lambda x: int(x.split("Score: ")[1].split(" |")[0]))
             episode = best_result.split("Episode ")[1].split(" |")[0]
-            score = best_result.split("Score: ")[1].split(" |")[0]
+            score = int(best_result.split("Score: ")[1].split(" |")[0])
             epsilon = best_result.split("Epsilon: ")[1].strip()
     else:
         print("No training results available. File not found.")
@@ -135,8 +138,14 @@ if __name__ == "__main__":
         readme_content = base64.b64decode(readme["content"]).decode("utf-8")
         readme_sha = readme["sha"]
 
-        # 提取目前總訓練次數，並加上 1000
-        current_training_count = extract_training_count(readme_content)
+        # 提取目前總訓練次數和最佳分數
+        current_training_count, current_best_score = extract_training_count_and_best_score(readme_content)
+
+        # 如果當前最佳分數小於 README 中的最佳分數，保留 README 的分數
+        if score <= current_best_score:
+            score = current_best_score
+
+        # 更新訓練次數
         updated_training_count = current_training_count + 1000
 
         # 更新 README 格式
