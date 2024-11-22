@@ -16,7 +16,7 @@ except FileNotFoundError:
     print(f"未找到模型文件：{model_path}，將從頭開始訓練。")
 
 # 訓練相關參數
-num_episodes = 100
+num_episodes = 1000
 highest_score = 0
 results = []  # 保存訓練結果
 
@@ -25,9 +25,10 @@ for episode in range(1, num_episodes + 1):
     total_reward = 0
     done = False
 
-    # 每1000局重置 epsilon（探索率）
-    if episode % 1000 == 0:
-        agent.epsilon = 0.01
+    # # 每1000局重置 epsilon（探索率）
+    # if episode % 1000 == 0:
+    #     agent.epsilon = 1
+        
 
     # 遞減 epsilon
     agent.epsilon = max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay)
