@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
 ## **最佳成績**
 現在使用 GitHub Action 訓練最佳成績為在 10x10 的地圖情況下  
-(台灣時間) 第 **{episode}** 次訓練  
+(時間 {current_time}) 第 **{episode}** 次訓練  
 **分數**: {score}  
 **探索值**: {epsilon}
 
