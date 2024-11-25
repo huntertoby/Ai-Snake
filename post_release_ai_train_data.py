@@ -166,6 +166,12 @@ if __name__ == "__main__":
         encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
         update_readme(encoded_content, readme_sha)
 
+    best_result = max(results, key=lambda x: int(x.split("Score: ")[1].split(" |")[0]))
+    episode = best_result.split("Episode ")[1].split(" |")[0]
+    score = int(best_result.split("Score: ")[1].split(" |")[0])
+    epsilon = best_result.split("Epsilon: ")[1].strip()
+
+
     # 創建 Release
     tag_name = f"training-results-{datetime.now(tz).strftime('%Y%m%d-%H%M')}"
     release_name = f"AI Snake Training Results ({current_time})"
