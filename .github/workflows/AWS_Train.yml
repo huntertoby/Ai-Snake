@@ -1,0 +1,92 @@
+name: Train and Push AI Snake Model(AWS
+
+on:
+  workflow_dispatch:  # 手動觸發
+
+jobs:
+  train_and_push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # 允許工作流程更新儲存庫內容
+      actions: write  # 允許觸發後續的 GitHub Actions
+
+    steps:
+    # Step 1: Checkout repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Cache Python dependencies
+    - name: Cache Python packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # Step 3: Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+
+    # Step 4: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Step 5: Deploy AWS CloudFormation stack
+    - name: Deploy CloudFormation stack
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Deploy CloudFormation
+      run: |
+        aws cloudformation deploy \
+          --template-file cloudformation-template.yml \
+          --stack-name ai-snake-training-stack \
+          --capabilities CAPABILITY_NAMED_IAM
+
+    # Step 6: Trigger model training in AWS environment
+    - name: Trigger training on AWS
+      run: |
+        aws s3 cp snake_dqn_latest.pth s3://ai-snake-model-bucket/
+        echo "Training triggered in AWS environment"
+
+    # Step 7: Train model (locally, optional)
+    - name: Train model
+      run: |
+        python Train.py
+
+    # Step 8: Authenticate and Push model file
+    - name: Push model file
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git pull origin main
+        git add snake_dqn_latest.pth
+        git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
+        git push origin HEAD:main
+
+    # Step 9: Run post_release_ai_train_data.py
+    - name: Post-process training data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python post_release_ai_train_data.py     
+
+    # Step 10: Trigger next execution
+    - name: Schedule next run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/train.yml/dispatches \
+        -d '{"ref":"main"}'
