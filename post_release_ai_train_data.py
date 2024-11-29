@@ -7,7 +7,7 @@ import base64
 
 # 獲取 GITHUB_TOKEN
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-REPO = "huntertoby/Ai-Snake"  # 替換為你的儲存庫名稱
+REPO = "huntertoby/Ai-Snake"
 
 if not GITHUB_TOKEN:
     raise EnvironmentError("GITHUB_TOKEN is not set. Please check the environment variables.")
@@ -54,9 +54,8 @@ def extract_training_count_and_best_score(content):
         if line.startswith("**分數**:"):
             best_score = int(line.split(": ")[1].strip())
     return training_count, best_score
-
-def create_release(tag_name, release_name, description, asset_path):
-    """創建 GitHub Release 並上傳圖表"""
+def create_release(tag_name, release_name, description, asset_paths):
+    """創建 GitHub Release 並上傳圖表和其他資產"""
     url = f"https://api.github.com/repos/{REPO}/releases"
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -74,20 +73,22 @@ def create_release(tag_name, release_name, description, asset_path):
         print("Release created successfully.")
         release = response.json()
         upload_url = release["upload_url"].replace("{?name,label}", "")
-        # 上傳圖表
-        with open(asset_path, "rb") as file:
-            headers["Content-Type"] = "application/octet-stream"
-            upload_response = requests.post(
-                f"{upload_url}?name={os.path.basename(asset_path)}", 
-                headers=headers, 
-                data=file
-            )
-        if upload_response.status_code == 201:
-            print(f"Asset uploaded successfully: {asset_path}")
-        else:
-            print(f"Failed to upload asset: {upload_response.status_code}, {upload_response.json()}")
+
+        for asset_path in asset_paths:
+            with open(asset_path, "rb") as file:
+                headers["Content-Type"] = "application/octet-stream"
+                upload_response = requests.post(
+                    f"{upload_url}?name={os.path.basename(asset_path)}",
+                    headers=headers,
+                    data=file
+                )
+            if upload_response.status_code == 201:
+                print(f"Asset uploaded successfully: {asset_path}")
+            else:
+                print(f"Failed to upload asset: {upload_response.status_code}, {upload_response.json()}")
     else:
         print(f"Failed to create release: {response.status_code}, {response.json()}")
+
 
 def plot_results(results):
     """繪製分數和探索值的圖表"""
@@ -110,17 +111,14 @@ def plot_results(results):
     return output_path
 
 if __name__ == "__main__":
-    # 設定台灣時區
     tz = pytz.timezone("Asia/Taipei")
     current_time = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
-    # 訓練結果檔案
     result_file = "train_results.txt"
 
     if os.path.exists(result_file):
         with open(result_file, "r") as file:
             results = file.readlines()
-            # 提取最高分和對應資訊
             best_result = max(results, key=lambda x: int(x.split("Score: ")[1].split(" |")[0]))
             episode = best_result.split("Episode ")[1].split(" |")[0]
             score = int(best_result.split("Score: ")[1].split(" |")[0])
@@ -129,21 +127,17 @@ if __name__ == "__main__":
         print("No training results available. File not found.")
         exit()
 
-    # 獲取 README 文件
     readme = get_readme()
     if readme:
         readme_content = base64.b64decode(readme["content"]).decode("utf-8")
         readme_sha = readme["sha"]
 
-        # 提取目前總訓練次數和最佳分數
         current_training_count, current_best_score = extract_training_count_and_best_score(readme_content)
 
-        # 更新訓練次數
         updated_training_count = current_training_count + 1000
 
-        # 根據條件更新 README
         if score > current_best_score:
-            # 更新最佳分數和相關資訊
+
             new_content = f"""
 # AI Snake Project
 
@@ -157,7 +151,6 @@ if __name__ == "__main__":
 現在已經訓練了: **{updated_training_count}** 次
 """
         else:
-            # 僅更新訓練次數，保留原始最佳分數資訊
             new_content = f"""
 # AI Snake Project
 
@@ -168,11 +161,9 @@ if __name__ == "__main__":
 現在已經訓練了: **{updated_training_count}** 次
 """
 
-        # 編碼新的 README 文件內容
         encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
         update_readme(encoded_content, readme_sha)
 
-    # 繪製圖表並創建 Release
     chart_path = plot_results(results)
     tag_name = f"training-results-{datetime.now(tz).strftime('%Y%m%d-%H%M')}"
     release_name = f"AI Snake Training Results ({current_time})"
@@ -182,5 +173,6 @@ if __name__ == "__main__":
 - **探索值**: {epsilon}
 - **訓練次數**: {updated_training_count}
     """
-    create_release(tag_name, release_name, release_description, chart_path)
+    asset_paths = [chart_path, result_file]
+    create_release(tag_name, release_name, release_description, asset_paths)
 
