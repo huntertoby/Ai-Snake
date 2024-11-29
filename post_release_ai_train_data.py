@@ -129,9 +129,6 @@ if __name__ == "__main__":
         print("No training results available. File not found.")
         exit()
 
-    # 繪製圖表
-    chart_path = plot_results(results)
-
     # 獲取 README 文件
     readme = get_readme()
     if readme:
@@ -141,15 +138,13 @@ if __name__ == "__main__":
         # 提取目前總訓練次數和最佳分數
         current_training_count, current_best_score = extract_training_count_and_best_score(readme_content)
 
-        # 如果當前最佳分數小於 README 中的最佳分數，保留 README 的分數
-        if score <= current_best_score:
-            score = current_best_score
-
         # 更新訓練次數
         updated_training_count = current_training_count + 1000
 
-        # 更新 README 格式
-        new_content = f"""
+        # 根據條件更新 README
+        if score > current_best_score:
+            # 更新最佳分數和相關資訊
+            new_content = f"""
 # AI Snake Project
 
 ## **最佳成績**
@@ -161,18 +156,24 @@ if __name__ == "__main__":
 ## 總訓練次數
 現在已經訓練了: **{updated_training_count}** 次
 """
+        else:
+            # 僅更新訓練次數，保留原始最佳分數資訊
+            new_content = f"""
+# AI Snake Project
+
+## **最佳成績**
+{readme_content.split("## **最佳成績**")[1].split("## 總訓練次數")[0]}
+
+## 總訓練次數
+現在已經訓練了: **{updated_training_count}** 次
+"""
 
         # 編碼新的 README 文件內容
         encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
         update_readme(encoded_content, readme_sha)
 
-    best_result = max(results, key=lambda x: int(x.split("Score: ")[1].split(" |")[0]))
-    episode = best_result.split("Episode ")[1].split(" |")[0]
-    score = int(best_result.split("Score: ")[1].split(" |")[0])
-    epsilon = best_result.split("Epsilon: ")[1].strip()
-
-
-    # 創建 Release
+    # 繪製圖表並創建 Release
+    chart_path = plot_results(results)
     tag_name = f"training-results-{datetime.now(tz).strftime('%Y%m%d-%H%M')}"
     release_name = f"AI Snake Training Results ({current_time})"
     release_description = f"""
@@ -182,3 +183,4 @@ if __name__ == "__main__":
 - **訓練次數**: {updated_training_count}
     """
     create_release(tag_name, release_name, release_description, chart_path)
+
