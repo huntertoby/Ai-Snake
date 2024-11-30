@@ -64,7 +64,7 @@ class DQNAgent:
 
         print("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
 
 
         # 在线网络和目标网络
