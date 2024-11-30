@@ -51,7 +51,7 @@ def extract_training_count_and_best_score(content):
     for line in content.splitlines():
         if line.startswith("現在已經訓練了:"):
             training_count = int(line.split(": **")[1].split("**")[0].strip())
-        if line.startswith("**分數**:"):
+        if line.startswith("**長度**:"):
             best_score = int(line.split(": ")[1].strip())
     return training_count, best_score
 def create_release(tag_name, release_name, description, asset_paths):
