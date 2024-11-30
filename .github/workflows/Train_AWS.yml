@@ -5,8 +5,8 @@ on:
 
 jobs:
   train_and_push:
-    runs-on: [self-hosted, AWS]
-
+    runs-on: self-hosted 
+    
     permissions:
       contents: write  # 允許工作流程更新儲存庫內容
       actions: write  # 允許觸發後續的 GitHub Actions
