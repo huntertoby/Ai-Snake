@@ -48,8 +48,6 @@ for episode in range(1, num_episodes + 1):
         state = next_state
         total_reward += reward
 
-        print(str(action) + " ",end="")
-
     total_reward += 40
 
     if total_reward > highest_score_data["score"]:
@@ -71,7 +69,7 @@ for episode in range(1, num_episodes + 1):
 torch.save(agent.policy_net.state_dict(), model_path)
 print(f"模型已保存：{model_path}")
 
-image_path = env.plot_game_state(highest_score_data, episode, is_game_over=True)
+image_path = env.plot_game_state(highest_score_data, episode)
 print(f"最高分的遊戲畫面已儲存：{image_path}")
 
 with open("train_results.txt", "w") as file:
