@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 import base64
 
-# 獲取 GITHUB_TOKEN
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO = "huntertoby/Ai-Snake"
 
@@ -97,8 +97,8 @@ def plot_results(results):
     epsilons = [float(line.split("Epsilon: ")[1].strip()) for line in results]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(episodes, scores, label="Score", marker="o")
-    plt.plot(episodes, epsilons, label="Epsilon", marker="x")
+    plt.plot(episodes, scores, label="Score", marker="o", linestyle="")  
+    plt.plot(episodes, epsilons, label="Epsilon", marker="x", linestyle="")  
     plt.xlabel("Episode")
     plt.ylabel("Value")
     plt.title("Training Results: Score and Epsilon over Episodes")
