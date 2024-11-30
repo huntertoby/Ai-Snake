@@ -158,7 +158,7 @@ class SnakeGame:
         ax.legend()
 
 
-        image_path = f"highest_score_game_state_episode_{episode}_len_{score/10}.png"
+        image_path = f"highest_score_game_state.png"
         plt.savefig(image_path)
         plt.close()
         return image_path
