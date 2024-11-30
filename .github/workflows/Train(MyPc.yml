@@ -1,4 +1,4 @@
-name: Train AI Snake (ubuntu-latest
+name: Train AI Snake (MyPc
 
 on:
   workflow_dispatch:  # 手動觸發
