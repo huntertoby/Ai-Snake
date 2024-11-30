@@ -148,7 +148,7 @@ if __name__ == "__main__":
 **探索值**: {epsilon}
 
 ## 總訓練次數
-現在已經訓練了: **{updated_training_count}** 次
+現在已經訓練了: **{468000}** 次
 """
         else:
             new_content = f"""
