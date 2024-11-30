@@ -2,8 +2,6 @@ name: Train and Push AI Snake Model Pipeline
 
 on:
   workflow_dispatch:  # 手動觸發
-  schedule:           # 定期執行（例如每週一執行一次）
-    - cron: '0 0 * * 1'
 
 jobs:
   setup:
