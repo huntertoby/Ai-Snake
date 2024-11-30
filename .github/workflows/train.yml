@@ -1,10 +1,10 @@
-name: Train and Push AI Snake Model Pipeline
+name: Train AI Snake (ubuntu-latest
 
 on:
   workflow_dispatch:  # 手動觸發
 
 jobs:
-  setup:
+  train_and_push:
     runs-on: ubuntu-latest
 
     permissions:
@@ -12,81 +12,62 @@ jobs:
       actions: write  # 允許觸發後續的 GitHub Actions
 
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Step 1: Checkout repository
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      # Step 2: Cache Python dependencies
-      - name: Cache Python packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+    # Step 2: Cache Python dependencies
+    - name: Cache Python packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
-  train_model:
-    needs: setup  # 確保 setup 階段成功後才開始訓練
-    runs-on: ubuntu-latest
 
-    steps:
-      # Step 3: Set up Python environment
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
+    # Step 3: Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
 
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    # Step 4: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      # Step 5: Run Train.py
-      - name: Train model
-        run: |
-          python Train.py
+    # Step 5: Run Train.py
+    - name: Train model
+      run: |
+        python Train.py
 
-  push_model:
-    needs: train_model  # 確保訓練階段成功後才推送模型
-    runs-on: ubuntu-latest
+    # Step 6: Authenticate and Push model file
+    - name: Push model file
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git pull origin main
+        git add snake_dqn_latest.pth
+        git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
+        git push origin HEAD:main
 
-    steps:
-      # Step 6: Authenticate and Push model file
-      - name: Push model file
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main
-          git add snake_dqn_latest.pth
-          git commit -m "Update snake_dqn_latest.pth with latest training results" || echo "No changes to commit"
-          git push origin HEAD:main
+    # Step 7: Run post_release_ai_train_data.py
+    - name: Post-process training data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python post_release_ai_train_data.py     
 
-  post_process:
-    needs: push_model  # 確保推送模型成功後才處理訓練數據
-    runs-on: ubuntu-latest
-
-    steps:
-      # Step 7: Run post_release_ai_train_data.py
-      - name: Post-process training data
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python post_release_ai_train_data.py
-
-  schedule_next_run:
-    needs: post_process  # 確保數據處理完成後再觸發下一次執行
-    runs-on: ubuntu-latest
-
-    steps:
-      # Step 8: Trigger next execution
-      - name: Schedule next run
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/${{ github.repository }}/actions/workflows/train.yml/dispatches \
-          -d '{"ref":"main"}'
+    # Step 8: Trigger next execution
+    - name: Schedule next run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/train.yml/dispatches \
+        -d '{"ref":"main"}'
