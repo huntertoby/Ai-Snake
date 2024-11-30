@@ -5,7 +5,7 @@ on:
 
 jobs:
   train_and_push:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     permissions:
       contents: write  # 允許工作流程更新儲存庫內容
