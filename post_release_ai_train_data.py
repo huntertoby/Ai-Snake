@@ -173,6 +173,6 @@ if __name__ == "__main__":
 - **探索值**: {epsilon}
 - **訓練次數**: {updated_training_count}
     """
-    asset_paths = [chart_path, result_file]
+    asset_paths = [chart_path, result_file, "highest_score_game_state.png"]
     create_release(tag_name, release_name, release_description, asset_paths)
 
