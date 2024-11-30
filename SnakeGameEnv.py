@@ -1,18 +1,20 @@
 import random
-import numpy as np
 
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class SnakeGame:
 
     def __init__(self):
-        self.screen_width = 400
-        self.screen_height = 400
-        self.cell_size = 40
+        self.screen_width = 10
+        self.screen_height = 10
+        self.cell_size = 1
         self.ACTION_SPACE = ['up', 'right', 'down', 'left']
-
-        snake_Speed = 50
-        self.max_steps_without_food = 50
+        self.snake_pos = []
+        self.snake_direction = ''
+        self.food_pos = []
+        self.last_snake_pos = []
 
     def reset(self):
         self.snake_pos = [[5 * self.cell_size, 3 * self.cell_size],
@@ -20,7 +22,6 @@ class SnakeGame:
                           [3 * self.cell_size, 3 * self.cell_size]]
         self.snake_direction = 'right'
         self.food_pos = self.spawn_food()
-        self.steps_since_last_food = 0
         return self.get_state()
 
     def get_state(self):
@@ -28,13 +29,13 @@ class SnakeGame:
         for pos in self.snake_pos[1:]:
             x, y = pos[0] // self.cell_size, pos[1] // self.cell_size
             if 0 <= x < self.screen_width // self.cell_size and 0 <= y < self.screen_height // self.cell_size:
-                state[y][x] = 0.5  # 身体标记为 0.5
+                state[y][x] = 0.5
         head_x, head_y = self.snake_pos[0][0] // self.cell_size, self.snake_pos[0][1] // self.cell_size
         if 0 <= head_x < self.screen_width // self.cell_size and 0 <= head_y < self.screen_height // self.cell_size:
-            state[head_y][head_x] = 1.0  # 头部标记为 1.0
+            state[head_y][head_x] = 1.0
         food_x, food_y = self.food_pos[0] // self.cell_size, self.food_pos[1] // self.cell_size
         if 0 <= food_x < self.screen_width // self.cell_size and 0 <= food_y < self.screen_height // self.cell_size:
-            state[food_y][food_x] = -1.0  # 食物标记为 -1.0
+            state[food_y][food_x] = -1.0
         return state
 
     def spawn_food(self):
@@ -61,12 +62,13 @@ class SnakeGame:
         elif self.snake_direction == 'left':
             x -= self.cell_size
         elif self.snake_direction == 'up':
-            y -= self.cell_size  # 修正为减少 y 值
+            y -= self.cell_size
         elif self.snake_direction == 'down':
-            y += self.cell_size  # 修正为增加 y 值
+            y += self.cell_size
         self.snake_pos.insert(0, [x, y])
 
     def is_collision(self):
+        print(self.snake_direction)
         head = self.snake_pos[0]
         if (head[0] < 0 or head[0] >= self.screen_width or
                 head[1] < 0 or head[1] >= self.screen_height or
@@ -74,41 +76,92 @@ class SnakeGame:
             return True
         return False
 
-    # 在 SnakeGameEnv 类中，添加一个函数来获取当前的允许动作
     def get_valid_actions(self):
         opposite_directions = {'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left'}
         invalid_action = opposite_directions[self.snake_direction]
         valid_actions = [i for i, action in enumerate(self.ACTION_SPACE) if action != invalid_action]
         return valid_actions
 
-    def get_distance(self, pos1, pos2):
-        # 计算两个位置之间的欧几里得距离
-        dx = pos1[0] - pos2[0]
-        dy = pos1[1] - pos2[1]
-        return (dx ** 2 + dy ** 2) ** 0.5
-        
     def step(self, action):
-
-        # 在移动蛇之前计算蛇头和食物之间的距离
-        prev_distance = self.get_distance(self.snake_pos[0], self.food_pos)
-
         reward = 0
-        # 执行动作
-        self.change_direction(action)
-        self.update_snake_position()
-        
-        done = False
 
+        self.change_direction(action)
+
+        self.last_snake_pos = list(self.snake_pos)
+
+        self.update_snake_position()
+
+        done = False
         if self.snake_pos[0] == self.food_pos:
             self.food_pos = self.spawn_food()
-            self.steps_since_last_food = 0  # 重置计数器
             reward = 10
         else:
             self.snake_pos.pop()
 
-        # 检查游戏是否结束
+        # 檢查蛇是否碰撞
         if self.is_collision():
             done = True
-            reward = -10  # 碰撞的惩罚
+            reward = -10
 
         return self.get_state(), reward, done
+
+    def plot_game_state(self, highest_score_data, episode):
+        snakePos = highest_score_data["snake_pos"]
+        foodPos = highest_score_data["food_pos"]
+        snake_direction = highest_score_data["snake_direction"]
+        score = highest_score_data["score"]
+
+        plt.figure(figsize=(6, 6))
+        ax = plt.gca()
+
+        # 畫蛇身（淺綠色）
+        if len(snakePos) > 1:
+            body_x, body_y = zip(*snakePos[1:])
+            body_x = [x + self.cell_size / 2 for x in body_x]
+            body_y = [y + self.cell_size / 2 for y in body_y]
+            ax.scatter(body_x, body_y, color="lightgreen", label="Snake Body", s=75, marker="o")
+
+            for i in range(len(snakePos) - 1):
+                x1, y1 = snakePos[i]
+                x2, y2 = snakePos[i + 1]
+                x1, y1 = x1 + self.cell_size / 2, y1 + self.cell_size / 2
+                x2, y2 = x2 + self.cell_size / 2, y2 + self.cell_size / 2
+                ax.arrow(x1, y1, x2 - x1, y2 - y1, head_width=0.1, head_length=0.1, fc='lightgreen', ec='lightgreen')
+
+        # 畫蛇頭（深綠色）
+        head_x, head_y = snakePos[0]
+        head_x += self.cell_size / 2
+        head_y += self.cell_size / 2
+        ax.scatter(head_x, head_y, color="darkgreen", label="Snake Head", s=75, marker="o")
+
+        # 畫蛇頭的方向箭頭
+        if snake_direction == 'up':
+            ax.arrow(head_x, head_y, 0, -self.cell_size / 2, head_width=0.3, head_length=0.3, fc='black', ec='black')
+        elif snake_direction == 'right':
+            ax.arrow(head_x, head_y, self.cell_size / 2, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+        elif snake_direction == 'down':
+            ax.arrow(head_x, head_y, 0, self.cell_size / 2, head_width=0.3, head_length=0.3, fc='black', ec='black')
+        elif snake_direction == 'left':
+            ax.arrow(head_x, head_y, -self.cell_size / 2, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+
+        # 畫食物（紅色）
+        food_x, food_y = foodPos
+        food_x += self.cell_size / 2
+        food_y += self.cell_size / 2
+        ax.scatter(food_x, food_y, color="red", label="Food", s=75, marker="x")
+
+        ax.set_title(f"Episode {episode} | Len: {score/10}")
+        ax.set_xlim(0, self.screen_width)
+        ax.set_ylim(0, self.screen_height)
+        ax.set_xticks(range(0, self.screen_width + 1, self.cell_size))
+        ax.set_yticks(range(0, self.screen_height + 1, self.cell_size))
+        ax.grid(True)
+
+        ax.legend()
+
+        # 儲存圖像
+        image_path = f"highest_score_game_state_episode_{episode}_len_{score/10}.png"
+        plt.savefig(image_path)
+        plt.close()
+        return image_path
+
