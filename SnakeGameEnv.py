@@ -68,7 +68,6 @@ class SnakeGame:
         self.snake_pos.insert(0, [x, y])
 
     def is_collision(self):
-        print(self.snake_direction)
         head = self.snake_pos[0]
         if (head[0] < 0 or head[0] >= self.screen_width or
                 head[1] < 0 or head[1] >= self.screen_height or
