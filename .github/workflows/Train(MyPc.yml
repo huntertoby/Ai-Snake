@@ -5,7 +5,7 @@ on:
 
 jobs:
   train_and_push:
-    runs-on: [self-hosted, HUNTER-CHIAO-PC]
+    runs-on: HUNTER-CHIAO-PC
     permissions:
       contents: write  # 允許工作流程更新儲存庫內容
       actions: write  # 允許觸發後續的 GitHub Actions
