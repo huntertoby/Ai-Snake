@@ -114,7 +114,7 @@ class SnakeGame:
         plt.figure(figsize=(6, 6))
         ax = plt.gca()
 
-        # 畫蛇身（淺綠色）
+
         if len(snakePos) > 1:
             body_x, body_y = zip(*snakePos[1:])
             body_x = [x + self.cell_size / 2 for x in body_x]
@@ -128,13 +128,13 @@ class SnakeGame:
                 x2, y2 = x2 + self.cell_size / 2, y2 + self.cell_size / 2
                 ax.arrow(x1, y1, x2 - x1, y2 - y1, head_width=0.1, head_length=0.1, fc='lightgreen', ec='lightgreen')
 
-        # 畫蛇頭（深綠色）
+
         head_x, head_y = snakePos[0]
         head_x += self.cell_size / 2
         head_y += self.cell_size / 2
         ax.scatter(head_x, head_y, color="darkgreen", label="Snake Head", s=75, marker="o")
 
-        # 畫蛇頭的方向箭頭
+
         if snake_direction == 'up':
             ax.arrow(head_x, head_y, 0, -self.cell_size / 2, head_width=0.3, head_length=0.3, fc='black', ec='black')
         elif snake_direction == 'right':
@@ -144,7 +144,6 @@ class SnakeGame:
         elif snake_direction == 'left':
             ax.arrow(head_x, head_y, -self.cell_size / 2, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
 
-        # 畫食物（紅色）
         food_x, food_y = foodPos
         food_x += self.cell_size / 2
         food_y += self.cell_size / 2
@@ -159,7 +158,7 @@ class SnakeGame:
 
         ax.legend()
 
-        # 儲存圖像
+
         image_path = f"highest_score_game_state_episode_{episode}_len_{score/10}.png"
         plt.savefig(image_path)
         plt.close()
