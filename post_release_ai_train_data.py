@@ -144,7 +144,7 @@ if __name__ == "__main__":
 ## **最佳成績**
 現在使用 GitHub Action 訓練最佳成績為在 10x10 的地圖情況下  
 (時間 {current_time}) 第 **{episode}** 次訓練  
-**分數**: {score}  
+**長度**: {score/10}  
 **探索值**: {epsilon}
 
 ## 總訓練次數
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     release_name = f"AI Snake Training Results ({current_time})"
     release_description = f"""
 ### 訓練結果
-- **最佳成績**: {score}
+- **最佳長度**: {score/10}
 - **探索值**: {epsilon}
 - **訓練次數**: {updated_training_count}
     """
