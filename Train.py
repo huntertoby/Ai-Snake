@@ -23,7 +23,8 @@ highest_score_data = {
     "score": 0,
     "snake_pos": None,
     "food_pos": None,
-    "snake_direction": None
+    "snake_direction": None,
+    "episode": None
 }
 
 for episode in range(1, num_episodes + 1):
@@ -55,6 +56,7 @@ for episode in range(1, num_episodes + 1):
         highest_score_data["snake_pos"] = env.last_snake_pos
         highest_score_data["food_pos"] = env.food_pos
         highest_score_data["snake_direction"] = env.snake_direction
+        highest_score_data["episode"] = episode
 
     results.append({
         "episode": episode,
@@ -69,7 +71,7 @@ for episode in range(1, num_episodes + 1):
 torch.save(agent.policy_net.state_dict(), model_path)
 print(f"模型已保存：{model_path}")
 
-image_path = env.plot_game_state(highest_score_data, episode)
+image_path = env.plot_game_state(highest_score_data, highest_score_data["episode"])
 print(f"最高分的遊戲畫面已儲存：{image_path}")
 
 with open("train_results.txt", "w") as file:
