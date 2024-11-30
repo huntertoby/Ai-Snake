@@ -62,6 +62,8 @@ class DQNAgent:
         self.learning_rate = 1e-3
         self.update_target_freq = 100  # 目标网络更新频率
 
+        print("cuda" if torch.cuda.is_available() else "cpu")
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
