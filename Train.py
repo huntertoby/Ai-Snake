@@ -15,7 +15,7 @@ except FileNotFoundError:
     print(f"未找到模型文件：{model_path}，將從頭開始訓練。")
 
 
-num_episodes = 1000
+num_episodes = 1
 highest_score = 0
 results = []
 
