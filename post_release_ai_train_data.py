@@ -52,7 +52,7 @@ def extract_training_count_and_best_score(content):
         if line.startswith("現在已經訓練了:"):
             training_count = int(line.split(": **")[1].split("**")[0].strip())
         if line.startswith("**長度**:"):
-            best_score = int(line.split(": ")[1].strip())
+            best_score = int(float(line.split(": ")[1].strip()))
     return training_count, best_score
 def create_release(tag_name, release_name, description, asset_paths):
     """創建 GitHub Release 並上傳圖表和其他資產"""
