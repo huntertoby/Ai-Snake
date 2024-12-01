@@ -8,7 +8,7 @@ agent = DQN.DQNAgent((1, 10, 10), 4)
 
 model_path = "snake_dqn_latest.pth"
 try:
-    agent.policy_net.load_state_dict(torch.load(model_path))
+    agent.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     agent.target_net.load_state_dict(agent.policy_net.state_dict())
     print(f"模型已加載：{model_path}")
 except FileNotFoundError:
