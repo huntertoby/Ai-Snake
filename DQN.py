@@ -65,8 +65,6 @@ class DQNAgent:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.policy_net = DQN(state_size, action_size).to(self.device)
-        if model_path:
-            self.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         self.target_net = DQN(state_size, action_size).to(self.device)
         self.update_target_network()
 
