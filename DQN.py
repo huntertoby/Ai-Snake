@@ -62,7 +62,7 @@ class DQNAgent:
         self.learning_rate = 1e-3
         self.update_target_freq = 100  # 目标网络更新频率
 
-        agent.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        self.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
         # 在线网络和目标网络
         self.policy_net = DQN(state_size, action_size).to(self.device)
