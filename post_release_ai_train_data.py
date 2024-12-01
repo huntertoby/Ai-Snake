@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
         updated_training_count = current_training_count + 1000
 
-        if score > current_best_score:
+        if score/10 > current_best_score:
 
             new_content = f"""
 # AI Snake Project
