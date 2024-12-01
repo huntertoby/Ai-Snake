@@ -62,10 +62,9 @@ class DQNAgent:
         self.learning_rate = 1e-3
         self.update_target_freq = 100  # 目标网络更新频率
 
-        self.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-
-        # 在线网络和目标网络
         self.policy_net = DQN(state_size, action_size).to(self.device)
+        if model_path:
+            self.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         self.target_net = DQN(state_size, action_size).to(self.device)
         self.update_target_network()
 
@@ -75,20 +74,16 @@ class DQNAgent:
         self.steps_done = 0
 
     def update_target_network(self):
-        # 更新目标网络参数
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def store_transition(self, state, action, reward, next_state, done):
-        # 存储经验
         self.memory.push((state, action, reward, next_state, done))
 
     def decay_epsilon(self):
-        # 减小探索率
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
     def select_action(self, state, valid_actions):
-        # 选择动作，使用 epsilon-greedy 策略
         if random.random() < self.epsilon:
             return random.choice(valid_actions)
         else:
@@ -107,26 +102,23 @@ class DQNAgent:
         transitions = self.memory.sample(self.batch_size)
         batch = list(zip(*transitions))
 
-        # Prepare tensors and add the channel dimension
         states = torch.tensor(np.array(batch[0]), dtype=torch.float32).unsqueeze(1).to(self.device)
         actions = torch.tensor(batch[1]).unsqueeze(1).to(self.device)
         rewards = torch.tensor(batch[2]).unsqueeze(1).to(self.device)
         next_states = torch.tensor(np.array(batch[3]), dtype=torch.float32).unsqueeze(1).to(self.device)
         dones = torch.tensor(batch[4], dtype=torch.float32).unsqueeze(1).to(self.device)
 
-        # Compute current Q values
         q_values = self.policy_net(states).gather(1, actions)
 
-        # Compute next Q values
         with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0].unsqueeze(1)
             target_q_values = rewards + (self.gamma * next_q_values * (1 - dones))
 
-        # Compute loss
+
         loss = self.loss_fn(q_values, target_q_values)
 
         if loss.item()>10:
-            print(f"训练步数 {self.steps_done}，损失: {loss.item():.4f}")
+            print(f"Loss: {loss.item():.4f}")
 
         # Backpropagation
         self.optimizer.zero_grad()
