@@ -61,7 +61,7 @@ for episode in range(1, num_episodes + 1):
     results.append({
         "episode": episode,
         "score": total_reward,
-        "highest_score": highest_score,
+        "Len": highest_score,
         "epsilon": round(agent.epsilon, 4)
     })
 
