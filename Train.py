@@ -78,5 +78,5 @@ with open("train_results.txt", "w") as file:
     for result in results:
         file.write(f"Episode {result['episode']} | "
                    f"Score: {result['score']} | "
-                   f"Highest Score: {result['highest_score']} | "
+                   f"Highest Score: {result['Len']} | "
                    f"Epsilon: {result['epsilon']}\n")
