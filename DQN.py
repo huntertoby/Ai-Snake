@@ -53,14 +53,18 @@ class ReplayMemory:
 # DQN 代理
 class DQNAgent:
     def __init__(self, state_size, action_size):
-        self.memory = ReplayMemory(50000)
-        self.batch_size = 32
-        self.gamma = 0.99  # 折扣因子
-        self.epsilon = 1  # 探索率
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
-        self.learning_rate = 1e-3
-        self.update_target_freq = 100  # 目标网络更新频率
+        
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+
+        self.memory = ReplayMemory(config['memory_capacity'])
+        self.batch_size = config['batch_size']
+        self.gamma = config['gamma']
+        self.epsilon = config['epsilon']
+        self.epsilon_min = config['epsilon_min']
+        self.epsilon_decay = config['epsilon_decay']
+        self.learning_rate = config['learning_rate']
+        self.update_target_freq = config['update_target_freq'
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
