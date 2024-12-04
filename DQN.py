@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
+import yaml
 
 
 # 更新 DQN 类，使用卷积神经网络
@@ -54,7 +55,7 @@ class ReplayMemory:
 class DQNAgent:
     def __init__(self, state_size, action_size):
         
-        with open(config_path, 'r') as f:
+        with open("config.yaml", 'r') as f:
             config = yaml.safe_load(f)
 
         self.memory = ReplayMemory(config['memory_capacity'])
@@ -64,7 +65,7 @@ class DQNAgent:
         self.epsilon_min = config['epsilon_min']
         self.epsilon_decay = config['epsilon_decay']
         self.learning_rate = config['learning_rate']
-        self.update_target_freq = config['update_target_freq'
+        self.update_target_freq = config['update_target_freq']
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
