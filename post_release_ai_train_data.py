@@ -12,7 +12,6 @@ if not GITHUB_TOKEN:
     raise EnvironmentError("GITHUB_TOKEN is not set. Please check the environment variables.")
 
 def get_readme():
-    """獲取 README.md 文件內容"""
     url = f"https://api.github.com/repos/{REPO}/contents/README.md"
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -26,7 +25,6 @@ def get_readme():
         return None
 
 def update_readme(content, sha):
-    """更新 README.md 文件"""
     url = f"https://api.github.com/repos/{REPO}/contents/README.md"
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -44,7 +42,6 @@ def update_readme(content, sha):
         print(f"Failed to update README.md: {response.status_code}, {response.json()}")
 
 def extract_training_count_and_best_len(content):
-    """從 README 內容中提取訓練次數和最佳長度"""
     training_count = 0
     best_len = 0
     for line in content.splitlines():
@@ -90,7 +87,6 @@ def create_release(tag_name, release_name, description, asset_paths):
         print(f"Failed to create release: {response.status_code}, {response.json()}")
 
 def plot_results(results):
-    """繪製長度和探索值的圖表"""
     episodes = [result["episode"] for result in results]
     lengths = [result["Len"] for result in results]
     epsilons = [result["epsilon"] for result in results]
