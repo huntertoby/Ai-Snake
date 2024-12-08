@@ -48,7 +48,7 @@ def extract_training_count_and_best_len(content):
         if line.startswith("現在已經訓練了:"):
             training_count = int(line.split(": **")[1].split("**")[0].strip())
         if line.startswith("**長度**:"):
-            best_len = line.split(": ")[1].strip()
+            best_len = int(float(line.split(": ")[1].strip()))
     return training_count, best_len
 
 def create_release(tag_name, release_name, description, asset_paths):
