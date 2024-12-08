@@ -5,7 +5,6 @@ from datetime import datetime
 import pytz
 import base64
 
-
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO = "huntertoby/Ai-Snake"
 
@@ -44,16 +43,17 @@ def update_readme(content, sha):
     else:
         print(f"Failed to update README.md: {response.status_code}, {response.json()}")
 
-def extract_training_count_and_best_score(content):
-    """從 README 內容中提取訓練次數和最佳分數"""
+def extract_training_count_and_best_len(content):
+    """從 README 內容中提取訓練次數和最佳長度"""
     training_count = 0
-    best_score = 0
+    best_len = 0
     for line in content.splitlines():
         if line.startswith("現在已經訓練了:"):
             training_count = int(line.split(": **")[1].split("**")[0].strip())
         if line.startswith("**長度**:"):
-            best_score = int(float(line.split(": ")[1].strip()))
-    return training_count, best_score
+            best_len = int(line.split(": ")[1].strip())
+    return training_count, best_len
+
 def create_release(tag_name, release_name, description, asset_paths):
     """創建 GitHub Release 並上傳圖表和其他資產"""
     url = f"https://api.github.com/repos/{REPO}/releases"
@@ -89,19 +89,18 @@ def create_release(tag_name, release_name, description, asset_paths):
     else:
         print(f"Failed to create release: {response.status_code}, {response.json()}")
 
-
 def plot_results(results):
-    """繪製分數和探索值的圖表"""
-    episodes = [int(line.split("Episode ")[1].split(" |")[0]) for line in results]
-    scores = [int(line.split("Score: ")[1].split(" |")[0]) for line in results]
-    epsilons = [float(line.split("Epsilon: ")[1].strip()) for line in results]
+    """繪製長度和探索值的圖表"""
+    episodes = [result["episode"] for result in results]
+    lengths = [result["Len"] for result in results]
+    epsilons = [result["epsilon"] for result in results]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(episodes, scores, label="Score", marker="o", linestyle="")  
+    plt.plot(episodes, lengths, label="Length", marker="o", linestyle="")  
     plt.plot(episodes, epsilons, label="Epsilon", marker="x", linestyle="")  
     plt.xlabel("Episode")
     plt.ylabel("Value")
-    plt.title("Training Results: Score and Epsilon over Episodes")
+    plt.title("Training Results: Length and Epsilon over Episodes")
     plt.legend()
     plt.grid(True)
 
@@ -118,11 +117,23 @@ if __name__ == "__main__":
 
     if os.path.exists(result_file):
         with open(result_file, "r") as file:
-            results = file.readlines()
-            best_result = max(results, key=lambda x: int(x.split("Score: ")[1].split(" |")[0]))
-            episode = best_result.split("Episode ")[1].split(" |")[0]
-            score = int(best_result.split("Score: ")[1].split(" |")[0])
-            epsilon = best_result.split("Epsilon: ")[1].strip()
+            results = []
+            for line in file:
+                parts = line.strip().split(" | ")
+                episode = int(parts[0].split("Episode ")[1])
+                length = int(parts[1].split("Len: ")[1])
+                longest_len = int(parts[2].split("Longest Len: ")[1])
+                epsilon = float(parts[3].split("Epsilon: ")[1])
+                results.append({
+                    "episode": episode,
+                    "Len": length,
+                    "LongestLen": longest_len,
+                    "epsilon": epsilon
+                })
+            best_result = max(results, key=lambda x: x["Len"])
+            episode = best_result["episode"]
+            length = best_result["Len"]
+            epsilon = best_result["epsilon"]
     else:
         print("No training results available. File not found.")
         exit()
@@ -132,19 +143,18 @@ if __name__ == "__main__":
         readme_content = base64.b64decode(readme["content"]).decode("utf-8")
         readme_sha = readme["sha"]
 
-        current_training_count, current_best_score = extract_training_count_and_best_score(readme_content)
+        current_training_count, current_best_len = extract_training_count_and_best_len(readme_content)
 
         updated_training_count = current_training_count + 1000
 
-        if score/10 > current_best_score:
-
+        if length > current_best_len:
             new_content = f"""
 # AI Snake Project
 
 ## **最佳成績**
 現在使用 GitHub Action 訓練最佳成績為在 10x10 的地圖情況下  
 (時間 {current_time}) 第 **{episode}** 次訓練  
-**長度**: {score/10}  
+**長度**: {length}  
 **探索值**: {epsilon}
 
 ## 總訓練次數
@@ -169,10 +179,9 @@ if __name__ == "__main__":
     release_name = f"AI Snake Training Results ({current_time})"
     release_description = f"""
 ### 訓練結果
-- **最佳長度**: {score/10}
+- **最佳長度**: {length}
 - **探索值**: {epsilon}
 - **訓練次數**: {updated_training_count}
     """
     asset_paths = [chart_path, result_file, "highest_score_game_state.png"]
     create_release(tag_name, release_name, release_description, asset_paths)
-
