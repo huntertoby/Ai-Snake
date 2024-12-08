@@ -108,7 +108,7 @@ class SnakeGame:
         snakePos = highest_score_data["snake_pos"]
         foodPos = highest_score_data["food_pos"]
         snake_direction = highest_score_data["snake_direction"]
-        score = highest_score_data["score"]
+        snake_length = highest_score_data["Len"]
 
         plt.figure(figsize=(6, 6))
         ax = plt.gca()
@@ -148,7 +148,7 @@ class SnakeGame:
         food_y += self.cell_size / 2
         ax.scatter(food_x, food_y, color="red", label="Food", s=75, marker="x")
 
-        ax.set_title(f"Episode {episode} | Len: {score/10}")
+        ax.set_title(f"Episode {episode} | Len: {snake_length}")
         ax.set_xlim(0, self.screen_width)
         ax.set_ylim(0, self.screen_height)
         ax.set_xticks(range(0, self.screen_width + 1, self.cell_size))
