@@ -13,7 +13,7 @@ try:
 except FileNotFoundError:
     print(f"Model file not found: {model_path}. Starting training from scratch.")
 
-num_episodes = 100
+num_episodes = 1000
 highest_score = 0
 results = []
 
