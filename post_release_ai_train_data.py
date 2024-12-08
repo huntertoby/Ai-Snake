@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
         current_training_count, current_best_len = extract_training_count_and_best_len(readme_content)
 
-        updated_training_count = current_training_count + 0
+        updated_training_count = current_training_count + 1000
 
         if length > current_best_len:
             new_content = f"""
