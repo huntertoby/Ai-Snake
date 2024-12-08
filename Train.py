@@ -5,22 +5,20 @@ import SnakeGameEnv
 env = SnakeGameEnv.SnakeGame()
 agent = DQN.DQNAgent((1, 10, 10), 4)
 
-
 model_path = "snake_dqn_latest.pth"
 try:
     agent.policy_net.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     agent.target_net.load_state_dict(agent.policy_net.state_dict())
-    print(f"模型已加載：{model_path}")
+    print(f"Model loaded: {model_path}")
 except FileNotFoundError:
-    print(f"未找到模型文件：{model_path}，將從頭開始訓練。")
+    print(f"Model file not found: {model_path}. Starting training from scratch.")
 
-
-num_episodes = 1000
+num_episodes = 100
 highest_score = 0
 results = []
 
 highest_score_data = {
-    "score": 0,
+    "Len": 0,
     "snake_pos": None,
     "food_pos": None,
     "snake_direction": None,
@@ -28,7 +26,6 @@ highest_score_data = {
 }
 
 for episode in range(1, num_episodes + 1):
-
 
     state = env.reset()
     total_reward = 0
@@ -49,10 +46,8 @@ for episode in range(1, num_episodes + 1):
         state = next_state
         total_reward += reward
 
-    total_reward += 40
-
-    if total_reward > highest_score_data["score"]:
-        highest_score_data["score"] = total_reward
+    if len(env.snake_pos) > highest_score_data["Len"]:
+        highest_score_data["Len"] = len(env.snake_pos)
         highest_score_data["snake_pos"] = env.last_snake_pos
         highest_score_data["food_pos"] = env.food_pos
         highest_score_data["snake_direction"] = env.snake_direction
@@ -60,23 +55,22 @@ for episode in range(1, num_episodes + 1):
 
     results.append({
         "episode": episode,
-        "score": total_reward,
-        "Len": highest_score,
+        "Len": len(env.snake_pos),
+        "LongestLen": highest_score_data["Len"],
         "epsilon": round(agent.epsilon, 4)
     })
 
-    print(f"回合 {episode}/{num_episodes} 完成，長度: {int(total_reward/10)}, 最長長度: {int(highest_score_data['score']/10)}, Epsilon: {agent.epsilon:.4f}")
-
+    print(f"Episode {episode}/{num_episodes} Finished, Length: {len(env.snake_pos)}, Longest Length: {highest_score_data['Len']}, Epsilon: {agent.epsilon:.4f}")
 
 torch.save(agent.policy_net.state_dict(), model_path)
-print(f"模型已保存：{model_path}")
+print(f"Model saved: {model_path}")
 
 image_path = env.plot_game_state(highest_score_data, highest_score_data["episode"])
-print(f"最高分的遊戲畫面已儲存：{image_path}")
+print(f"Highest score game state image saved: {image_path}")
 
 with open("train_results.txt", "w") as file:
     for result in results:
         file.write(f"Episode {result['episode']} | "
-                   f"Score: {result['score']} | "
-                   f"Highest Score: {result['Len']} | "
+                   f"Len: {result['Len']} | "
+                   f"Longest Len: {result['LongestLen']} | "
                    f"Epsilon: {result['epsilon']}\n")
